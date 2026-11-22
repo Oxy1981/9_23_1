@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="uk"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Зв’язки між таблицями у dat.A — робочий аркуш</title>
+<style>
+:root{--bg:#f7f6f2;--card:#fff;--tx:#1f2430;--mut:#5d6575;--ac:#0f766e;--acbg:#d9f1ee;--ok:#15803d;--okbg:#dcf5e3;--bad:#b91c1c;--badbg:#fde2e2;--bd:#d9d7cf;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15181e;--card:#1f242d;--tx:#e8eaee;--mut:#9aa3b2;--ac:#5eead4;--acbg:#14403c;--ok:#4ade80;--okbg:#14351f;--bad:#f87171;--badbg:#44181a;--bd:#363d4a;color-scheme:dark}}
+*{box-sizing:inherit}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:860px;margin:0 auto;padding:16px}
+h1{font-size:1.4rem;margin:.2em 0}h2{font-size:1.15rem;margin:1em 0 .4em}p{margin:.4em 0}
+.sub{color:var(--mut);font-size:.9rem}
+nav{display:flex;gap:6px;margin:12px 0;position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);padding:6px 0;z-index:5}
+nav button{flex:1;padding:10px;border:1px solid var(--bd);background:var(--card);color:var(--tx);border-radius:10px;font:inherit;cursor:pointer}
+nav button.on{background:var(--ac);color:var(--bg);border-color:var(--ac);font-weight:600}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px 16px;margin:12px 0}
+.sc{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:.92rem}
+th,td{border:1px solid var(--bd);padding:6px 8px;text-align:left;vertical-align:top}th{background:var(--acbg)}
+.tag{display:inline-block;background:var(--acbg);padding:1px 8px;border-radius:99px;font-size:.85rem}
+.key{background:var(--acbg);border-left:4px solid var(--ac);padding:8px 12px;border-radius:6px;margin:8px 0}
+button.b,select{font:inherit;padding:7px 12px;border-radius:8px;border:1px solid var(--bd);background:var(--card);color:var(--tx);cursor:pointer}
+button.b.p{background:var(--ac);color:var(--bg);border-color:var(--ac);font-weight:600}
+select{max-width:100%}
+.opt{display:block;padding:7px 10px;margin:4px 0;border:1px solid var(--bd);border-radius:8px;cursor:pointer}
+.opt input{margin-right:8px}
+.ok,button.b.ok{background:var(--okbg);border-color:var(--ok)}.bad,button.b.bad{background:var(--badbg);border-color:var(--bad)}
+.fb{font-size:.9rem;margin-top:6px;min-height:1.2em}
+.pts{float:right;font-size:.85rem;color:var(--mut)}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0}.row>span{flex:1 1 220px}
+.hide{display:none}
+#res{font-size:1.1rem;font-weight:700}
+.sel{cursor:pointer}.sel.on td{background:var(--badbg)}
+</style></head><body><main>
+<h1>Зв’язки між таблицями у dat.A</h1>
+<p class="sub">Зовнішні ключі (FOREIGN KEY), режим підстановки, ER-діаграма · 9 клас · кав’ярня «BubbleTea &amp; Burgers»</p>
+<label class="sub">Прізвище та ім’я: <input id="nm" style="font:inherit;padding:5px 8px;border:1px solid var(--bd);border-radius:8px;background:var(--card);color:var(--tx)"></label>
+<nav><button class="on" data-t="th">1. Теорія</button><button data-t="tr">2. Тренажер (2 б)</button><button data-t="ts">3. Тест (6 б)</button><button data-t="ev">4. Оцінка</button></nav>
+
+<section id="th">
+<div class="card"><h2>А. Види зв’язків за множинністю</h2>
+<p>Щоб зв’язати таблиці A і B, питаємо: зі скількома записами B пов’язаний один запис A — і навпаки?</p>
+<div class="sc"><table><tr><th>Вид</th><th>Сутність</th><th>Приклад</th></tr>
+<tr><td><b>1 : 1</b><br>один-до-одного</td><td>Одному запису першої таблиці — один запис другої, і навпаки. Трапляється рідко.</td><td>Працівник — Медична книжка</td></tr>
+<tr><td><b>1 : ∞</b> (1 : N)<br>один-до-багатьох<br><span class="tag">найпоширеніший</span></td><td>Одному запису головної таблиці — багато записів підпорядкованої; кожному запису підпорядкованої — лише один головної.</td><td>Позиція меню — Замовлення</td></tr>
+<tr><td><b>∞ : ∞</b> (M : N)<br>багато-до-багатьох</td><td>Реалізується через третю, проміжну таблицю.</td><td>Клієнти — Страви меню (через «Замовлення»)</td></tr></table></div></div>
+
+<div class="card"><h2>Б. Батьківські та дочірні таблиці. FOREIGN KEY</h2>
+<p><b>Головна (батьківська) таблиця</b> — з боку «1», на неї посилаються. Має первинний ключ (PK). У нас: «Меню».</p>
+<p><b>Дочірня таблиця</b> — з боку «∞», вона посилається на головну. У нас: «Замовлення».</p>
+<div class="key"><b>Зовнішній ключ (FK)</b> — поле дочірньої таблиці, значення якого посилаються на PK батьківської. <b>Правило цілісності:</b> у FK не може бути значення, якого немає в PK батьківської таблиці.</div></div>
+
+<div class="card"><h2>В. Створення FK і режим підстановки в dat.A</h2>
+<p>У dat.A зв’язок налаштовують <b>одразу в конструкторі дочірньої таблиці</b>, тому спочатку створюємо довідники (батьківські), потім — дочірні.</p>
+<ol><li>Додаємо поле для зв’язку (тип такий самий, як у PK батьківської, зазвичай <i>Ціле число</i>).</li>
+<li>Ставимо прапорець у колонці <b>Зовнішній ключ</b>.</li>
+<li>У колонці <b>Таблиця</b> обираємо батьківську таблицю.</li>
+<li>У колонці <b>Поле</b> обираємо її первинний ключ (ID).</li>
+<li>Вмикаємо прапорець <b>Підстановка</b>.</li></ol>
+<p><b>Підстановка:</b> замість сухих цифр (1, 2, 3) під час введення даних з’являється випадаючий список зрозумілих назв — вони беруться зі стовпчика, що йде одразу після PK у довіднику.</p></div>
+
+<div class="card"><h2>Г. Конструктор зв’язків (ER-діаграма)</h2>
+<p><b>Як відкрити:</b> Створити → Запит (або Запити → Створити) → на правій панелі конструктора запитів кнопка <b>«Подання зв’язків»</b> (іконка пазла). Блоки таблиць можна перетягувати мишею; схему можна зберегти.</p>
+<div class="sc"><table><tr><th>Лінія</th><th>Що це</th></tr>
+<tr><td><b style="color:#dc2626">Червоні стрілки</b> (системні)</td><td>Створені через FOREIGN KEY у конструкторі таблиць; забезпечують цілісність; на схемі їх видалити не можна.</td></tr>
+<tr><td><b style="color:#2563eb">Блакитні стрілки</b> (користувацькі)</td><td>Створені вручну на діаграмі (клік по полю-джерелу → клік по полю-приймачу); потрібні для JOIN у запитах; видаляються подвійним кліком.</td></tr></table></div>
+<p class="sub">На відміну від MS Access, біля стрілок у dat.A не підписуються значки 1 та ∞.</p></div>
+</section>
+
+<section id="tr" class="hide">
+<p class="sub">Тренажер оцінюється в 2 бали: вправи 1 і 2 — по 0,6 б (0,1 б за кожну правильну відповідь), вправа 3 — 0,8 б. Рахується перша спроба.</p>
+<div class="card"><span class="pts">до 0,6 б</span><h2>Вправа 1. Визнач вид зв’язку</h2><div id="t1"></div><p class="fb" id="t1s"></p></div>
+<div class="card"><span class="pts">до 0,6 б</span><h2>Вправа 2. Чи прийме база це значення FK?</h2>
+<p><b>Правило цілісності:</b> у зовнішньому ключі можна записати лише те значення, яке <b>є</b> серед первинних ключів (ID) батьківської таблиці.</p>
+<p>Батьківська таблиця <b>Меню</b>:</p>
+<div class="sc"><table><tr><th>ID (PK)</th><th>Назва</th></tr><tr><td>1</td><td>Бабл-ті Таро</td></tr><tr><td>2</td><td>Чізбургер</td></tr><tr><td>3</td><td>Картопля фрі</td></tr><tr><td>4</td><td>Лате</td></tr></table></div>
+<p>Касир вносить замовлення в дочірню таблицю <b>Замовлення</b>, поле <b>МенюID</b> — це FK. Для кожного запису обери, чи база його <b>прийме</b>:</p>
+<div id="t2"></div><p class="fb" id="t2s"></p></div>
+<div class="card"><span class="pts">до 0,8 б</span><h2>Вправа 3. Налаштуй зовнішній ключ у конструкторі</h2>
+<p>У таблиці «Замовлення» є поле <b>МенюID</b>. Налаштуй його так, щоб воно посилалося на таблицю «Меню», а касир під час введення обирав страву зі списку, а не вписував цифри.</p>
+<div class="sc"><table><tr><th>Поле</th><th>Тип</th><th>Зовнішній ключ</th><th>Таблиця</th><th>Поле</th><th>Підстановка</th></tr>
+<tr><td>МенюID</td>
+<td><select id="f_t"><option value="">—</option><option value="0">Текст</option><option value="1">Ціле число</option><option value="2">Дата</option></select></td>
+<td><input type="checkbox" id="f_fk"></td>
+<td><select id="f_tb"><option value="">—</option><option value="0">Замовлення</option><option value="1">Меню</option></select></td>
+<td><select id="f_pf"><option value="">—</option><option value="0">ID</option><option value="1">Назва</option><option value="2">Ціна</option></select></td>
+<td><input type="checkbox" id="f_sub"></td></tr></table></div>
+<div class="row"><button class="b p" onclick="chkFK()">Перевірити</button></div>
+<div class="fb" id="f_out"></div><div id="f_prev"></div></div>
+</section>
+
+<section id="ts" class="hide">
+<div id="tests"></div>
+<div class="card"><div class="row"><button class="b p" onclick="grade()">Перевірити тест</button><button class="b" onclick="location.reload()">Спробувати знову</button></div>
+<p id="res"></p><p class="sub" id="det"></p></div>
+</section>
+
+<section id="ev" class="hide">
+<div class="card"><h2>Мої результати</h2>
+<p class="sub" id="evn">Спочатку виконай тест і натисни «Перевірити тест» — тут з’являться твої бали.</p>
+<div class="sc"><table id="evt"></table></div>
+<p id="evr" style="font-size:1.1rem;font-weight:700"></p></div>
+<div class="card"><h2>Рівні досягнень (за 8 балів)</h2>
+<div class="sc"><table><tr><th>Бали</th><th>Рівень</th><th>Що це означає</th></tr>
+<tr><td>до 2</td><td>Початковий</td><td>Знаю лише окремі терміни; потрібно повторити теорію й тренажер.</td></tr>
+<tr><td>понад 2 до 4</td><td>Середній</td><td>Розрізняю види зв’язків, але плутаю ролі таблиць або кроки налаштування FK.</td></tr>
+<tr><td>понад 4 до 6</td><td>Достатній</td><td>Розумію FK, підстановку й ER-діаграму; трапляються неточності.</td></tr>
+<tr><td>понад 6 до 8</td><td>Високий</td><td>Упевнено застосовую знання, у тому числі в ситуаційній задачі.</td></tr></table></div>
+<p class="sub">Практичне завдання в dat.A (таблиця «Замовлення», FK із підстановкою до «Меню», дослідження ER-діаграми) оцінюється окремо.</p></div>
+<div class="card"><h2>Самооцінювання: я вмію…</h2>
+<label class="opt"><input type="checkbox" class="sf"> визначати вид зв’язку між таблицями (1:1, 1:∞, ∞:∞)</label>
+<label class="opt"><input type="checkbox" class="sf"> відрізняти батьківську таблицю від дочірньої</label>
+<label class="opt"><input type="checkbox" class="sf"> налаштувати FOREIGN KEY із підстановкою в конструкторі таблиці</label>
+<label class="opt"><input type="checkbox" class="sf"> відкрити ER-діаграму й розрізнити червоні та блакитні стрілки</label>
+<p class="fb" id="sfr"></p></div>
+</section>
+</main>
+<script>
+const $=s=>document.querySelector(s),E=(t,h,c)=>{const e=document.createElement(t);if(h!=null)e.innerHTML=h;if(c)e.className=c;return e};
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('on',x===b));['th','tr','ts','ev'].forEach(i=>$('#'+i).classList.toggle('hide',i!==b.dataset.t));scrollTo(0,0)});
+const R=['1 : 1','1 : ∞','∞ : ∞'];
+const TS=[0,0,0],r2=x=>String(Math.round(x*100)/100).replace('.',',');
+/* ТРЕНАЖЕР 1 */
+const sc=[['Учень — Шкільний квиток',0],['Категорія меню — Страви',1],['Лікар — Пацієнти',2],['Клас — Учні',1],['Вчителі — Класи',2],['Країна — Столиця',0]];
+let done1=0,ok1=0;
+sc.forEach(([t,a],i)=>{const r=E('div',null,'row');r.append(E('span','<b>'+(i+1)+'.</b> '+t));
+R.forEach((x,j)=>{const b=E('button',x,'b');b.onclick=()=>{if(r.dataset.d)return;r.dataset.d=1;done1++;if(j===a){ok1++;TS[0]=ok1/10;b.classList.add('ok')}else{b.classList.add('bad');r.children[a+1].classList.add('ok')}
+$('#t1s').textContent=done1===sc.length?'Результат: '+ok1+' з '+sc.length+(ok1<sc.length?'. Повтори таблицю з теорії.':'. Чудово!')+' Бали: '+r2(TS[0])+' з 0,6.':'';evalUpd()};r.append(b)});$('#t1').append(r)});
+/* ТРЕНАЖЕР 2 */
+const M=['Бабл-ті Таро','Чізбургер','Картопля фрі','Лате'];
+const ord=[[101,2],[102,4],[103,7],[104,1],[105,5],[106,3]];let d2=0,ok2=0;
+ord.forEach(([i,f])=>{const valid=f>=1&&f<=4,r=E('div',null,'row');r.append(E('span','Замовлення №'+i+': МенюID = <b>'+f+'</b>'));
+const fb=E('span',null,'fb');
+[['Прийме ✓',true],['Відхилить ✗',false]].forEach(([t,v])=>{const bt=E('button',t,'b');bt.onclick=()=>{if(r.dataset.d)return;r.dataset.d=1;d2++;const good=v===valid;if(good){ok2++;TS[1]=ok2/10}bt.classList.add(good?'ok':'bad');
+fb.textContent=(good?'Вірно. ':'Ні. ')+(valid?'У «Меню» є ID '+f+' ('+M[f-1]+').':'У «Меню» немає ID '+f+' — це порушення цілісності.');
+$('#t2s').textContent=d2===ord.length?'Результат: '+ok2+' з '+ord.length+'. Бали: '+r2(TS[1])+' з 0,6.':'';evalUpd()};r.append(bt)});r.append(fb);$('#t2').append(r)});
+function chkFK(){const v=id=>$('#'+id).value,e=[];
+if(v('f_t')!=='1')e.push('Тип поля має збігатися з типом PK батьківської таблиці — «Ціле число».');
+if(!$('#f_fk').checked)e.push('Постав прапорець у колонці «Зовнішній ключ».');
+if(v('f_tb')!=='1')e.push('У колонці «Таблиця» обери батьківську таблицю — «Меню».');
+if(v('f_pf')!=='0')e.push('У колонці «Поле» обери первинний ключ батьківської таблиці — «ID».');
+if(!$('#f_sub').checked)e.push('Увімкни «Підстановку», щоб замість цифр був список назв.');
+if(!chkFK.t){chkFK.t=1;TS[2]=Math.round(0.16*(5-e.length)*100)/100;evalUpd()}
+const o=$('#f_out'),p=$('#f_prev');
+if(e.length){o.innerHTML='Потрібно виправити:<br>• '+e.join('<br>• ')+'<br>Бали за першу спробу: '+r2(TS[2])+' з 0,8.';p.innerHTML=''}
+else{o.textContent='Налаштовано правильно! Бали за першу спробу: '+r2(TS[2])+' з 0,8. Ось як тепер виглядатиме введення замовлення:';p.innerHTML='<div class="row"><span>МенюID:</span><select>'+M.map(m=>'<option>'+m+'</option>').join('')+'</select></div>'}}
+/* ТЕСТ */
+const sel=(n,opts)=>'<select data-k="'+n+'"><option value="">— обери —</option>'+opts.map((o,i)=>'<option value="'+i+'">'+o+'</option>').join('')+'</select>';
+const T=[];
+// 1
+T.push({max:0.5,t:'Одиночний вибір',lvl:'легко',h:'Яка таблиця у зв’язку 1 : ∞ є <b>дочірньою</b>?',
+b:['Та, що з боку «1»','Та, що з боку «∞» і містить зовнішній ключ','Та, у якої немає первинного ключа','Будь-яка з двох'].map((o,i)=>'<label class="opt"><input type="radio" name="q1" value="'+i+'">'+o+'</label>').join(''),
+g(){const v=document.querySelector('[name=q1]:checked');return{s:v&&v.value==1?0.5:0,m:null}},ex:'Правильно: друга відповідь.'});
+// 2
+const tf=[['FK у дочірній таблиці посилається на первинний ключ батьківської.',1],['У FK можна записати значення, якого немає в PK батьківської таблиці.',0],['У dat.A спочатку створюють дочірні таблиці, а потім довідники.',0],['Підстановка показує під час введення список зрозумілих назв замість цифр.',1]];
+T.push({max:1,t:'Правда / неправда (по 0,25 б)',lvl:'легко',h:'Познач кожне твердження.',
+b:tf.map((x,i)=>'<div class="row"><span>'+x[0]+'</span><select data-k="tf'+i+'"><option value="">—</option><option value="1">Правда</option><option value="0">Неправда</option></select></div>').join(''),
+g(){let s=0;tf.forEach((x,i)=>{if(document.querySelector('[data-k=tf'+i+']').value===String(x[1]))s+=.25});return{s}},ex:'Правильно: П, Н, Н, П.'});
+// 3
+const mt=[['Працівник — Медична книжка',0],['Позиція меню — Замовлення',1],['Категорія меню — Страви',1],['Клієнти — Страви меню',2]];
+T.push({max:1,t:'Відповідність (по 0,25 б)',lvl:'середньо',h:'Добери вид зв’язку до кожної пари таблиць.',
+b:mt.map((x,i)=>'<div class="row"><span>'+x[0]+'</span>'+sel('mt'+i,R)+'</div>').join(''),
+g(){let s=0;mt.forEach((x,i)=>{if(document.querySelector('[data-k=mt'+i+']').value===String(x[1]))s+=.25});return{s}},ex:'Правильно: 1:1, 1:∞, 1:∞, ∞:∞.'});
+// 4
+const st=['Вмикаємо прапорець «Підстановка»','Ставимо прапорець у колонці «Зовнішній ключ»','Додаємо поле для зв’язку (Ціле число)','У колонці «Поле» обираємо первинний ключ (ID)','У колонці «Таблиця» обираємо батьківську таблицю'];
+const ans=[4,2,1,3,0].map(x=>x);// правильна позиція кроку: index→номер
+const pos=[5,2,1,4,3]; // крок i має бути на місці pos[i]
+T.push({max:1,t:'Послідовність (по 0,2 б)',lvl:'середньо',h:'Вкажи правильний порядок налаштування FK у конструкторі таблиці (1–5).',
+b:st.map((x,i)=>'<div class="row"><span>'+x+'</span>'+sel('st'+i,['1','2','3','4','5'])+'</div>').join(''),
+g(){let s=0;st.forEach((x,i)=>{if(document.querySelector('[data-k=st'+i+']').value===String(pos[i]-1))s+=.2});return{s}},ex:'Правильний порядок: поле → FK → таблиця → поле (ID) → підстановка.'});
+// 5
+const mc=[['Червоні стрілки — системні зв’язки, створені через FOREIGN KEY.',1],['Блакитні стрілки — користувацькі, їх можна видалити подвійним кліком.',1],['Відкривається через Запит → «Подання зв’язків» (іконка пазла).',1],['Біля стрілок на схемі dat.A підписані значки 1 та ∞.',0]];
+T.push({max:1,t:'Множинний вибір (по 0,25 б)',lvl:'середньо',h:'Познач <b>усі правильні</b> твердження про ER-діаграму dat.A.',
+b:mc.map((x,i)=>'<label class="opt"><input type="checkbox" data-k="mc'+i+'">'+x[0]+'</label>').join(''),
+g(){let s=0;mc.forEach((x,i)=>{if(document.querySelector('[data-k=mc'+i+']').checked===!!x[1])s+=.25});return{s}},ex:'Правильні перші три; значки 1 та ∞ у dat.A не підписуються.'});
+// 6
+T.push({max:1.5,t:'Ситуаційна задача (по 0,5 б)',lvl:'складно',h:'Кав’ярня додає облік клієнтів. Є дві таблиці:<div class="sc"><table><tr><th colspan="2">Клієнти</th><th colspan="3">Замовлення</th></tr><tr><td>ID (PK)</td><td>Ім’я</td><td>ID (PK)</td><td>КлієнтID</td><td>Дата</td></tr></table></div>Один клієнт може зробити багато замовлень, а кожне замовлення належить одному клієнту.',
+b:'<div class="row"><span>Вид зв’язку</span>'+sel('c0',R)+'</div><div class="row"><span>Поле-зовнішній ключ</span>'+sel('c1',['Клієнти.ID','Клієнти.Ім’я','Замовлення.ID','Замовлення.КлієнтID'])+'</div><div class="row"><span>Яку таблицю створюємо першою?</span>'+sel('c2',['Клієнти','Замовлення'])+'</div>',
+g(){const a=[1,3,0];let s=0;a.forEach((x,i)=>{if(document.querySelector('[data-k=c'+i+']').value===String(x))s+=.5});return{s}},ex:'Правильно: 1:∞; FK — Замовлення.КлієнтID; першою створюємо батьківську таблицю — Клієнти.'});
+T.forEach((q,i)=>{const c=E('div',null,'card');c.innerHTML='<span class="pts">'+r2(q.max)+' б · '+q.lvl+'</span><h2>Завдання '+(i+1)+'. '+q.t+'</h2><p>'+q.h+'</p>'+q.b+'<p class="fb" id="fb'+i+'"></p>';q.c=c;$('#tests').append(c)});
+const SC=[];
+function evalUpd(){const tn=['Вправа 1. Види зв’язків','Вправа 2. Цілісність FK','Вправа 3. Налаштування FK'],tm=[0.6,0.6,0.8];
+let h='<tr><th>Частина</th><th>Завдання</th><th>Бали</th></tr>',a=0,b=0;const g=SC.length>0;
+tn.forEach((n,i)=>{a+=TS[i];h+='<tr><td>Тренажер</td><td>'+n+'</td><td>'+r2(TS[i])+' з '+r2(tm[i])+'</td></tr>'});
+h+='<tr><th colspan="2">Тренажер разом</th><th>'+r2(a)+' з 2</th></tr>';
+T.forEach((q,i)=>{if(g)b+=SC[i];h+='<tr><td>Тест</td><td>'+(i+1)+'. '+q.t.replace(/ \(.*\)/,'')+'</td><td>'+(g?r2(SC[i]):'—')+' з '+r2(q.max)+'</td></tr>'});
+h+='<tr><th colspan="2">Тест разом</th><th>'+(g?r2(b):'—')+' з 6</th></tr>';
+const tot=Math.round((a+b)*100)/100;
+h+='<tr><th colspan="2">Усього за частину</th><th>'+r2(tot)+' з 8</th></tr>';
+$('#evt').innerHTML=h;
+$('#evn').textContent=($('#nm').value?$('#nm').value+', ':'')+'ось твої бали (тренажер оновлюється одразу, тест — після перевірки).';
+$('#evr').textContent=g?'Разом '+r2(tot)+' з 8. Рівень: '+(tot<=2?'початковий':tot<=4?'середній':tot<=6?'достатній':'високий'):'Пройди тест, щоб побачити підсумок.'}
+document.querySelectorAll('.sf').forEach(c=>c.onchange=()=>{const n=document.querySelectorAll('.sf:checked').length;$('#sfr').textContent=n===4?'Чудово! Ти готовий(-а) до практичного завдання.':n+' з 4. Повтори розділи теорії для тих пунктів, які не відмічено.'});
+function grade(){let tot=0,parts=[];T.forEach((q,i)=>{const s=Math.round(q.g().s*100)/100;tot+=s;parts.push(i+1+': '+s+'/'+q.max);SC[i]=s;
+const f=$('#fb'+i);f.className='fb';f.textContent=(s===q.max?'✓ ':'')+'Бали: '+r2(s)+' з '+r2(q.max)+'. '+(s<q.max?q.ex:'');q.c.classList.toggle('ok',s===q.max);q.c.classList.toggle('bad',s<q.max)});
+tot=Math.round(tot*100)/100;$('#res').textContent=($('#nm').value?$('#nm').value+': ':'')+'Тест: '+r2(tot)+' з 6 балів';$('#det').textContent='По завданнях — '+parts.join(' · ')+'. Підсумок разом із тренажером — у розділі «Оцінка».';evalUpd();$('#res').scrollIntoView({behavior:'smooth',block:'center'})}
+evalUpd();
+</script></body></html>
